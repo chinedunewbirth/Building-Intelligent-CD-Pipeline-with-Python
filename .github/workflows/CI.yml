@@ -1,0 +1,56 @@
+name: Intelligent CD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-and-score:
+    runs-on: ubuntu-latest
+    outputs:
+      intelligence: ${{ steps.intelligence.outputs.intelligence }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Example: run tests & generate coverage report
+      - name: Run tests with coverage
+        run: |
+          pytest --maxfail=1 --disable-warnings -q --cov=your_package --cov-report=xml
+
+      # Run your "intelligence" Python script
+      - name: Compute deployment intelligence
+        id: intelligence
+        run: |
+          python ci_intelligence.py --coverage-file coverage.xml --output-file intelligence.json
+          echo "intelligence=$(cat intelligence.json)" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: build-and-score
+    runs-on: ubuntu-latest
+
+    # Only run deploy if the Python script says "deploy": true
+    if: ${{ fromJson(needs.build-and-score.outputs.intelligence).deploy == true }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Example deploy step (replace with your actual deployment)
+      - name: Deploy to production
+        run: |
+          echo "Deploying because intelligence score is high enough..."
+          # e.g. aws deploy, kubectl apply, terraform apply, etc.
