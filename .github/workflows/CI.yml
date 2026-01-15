@@ -29,7 +29,7 @@ jobs:
       # Example: run tests & generate coverage report
       - name: Run tests with coverage
         run: |
-          pytest --maxfail=1 --disable-warnings -q --cov=your_package --cov-report=xml
+          pytest --maxfail=1 --disable-warnings -q --cov= --cov-report=xml
 
       # Run your "intelligence" Python script
       - name: Compute deployment intelligence
